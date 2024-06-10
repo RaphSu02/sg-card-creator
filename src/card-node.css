@@ -12,6 +12,22 @@
   text-align: right;
 }
 
+.card-node .add-remove-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.card-node .add-button {
+  all: unset;
+  cursor: pointer;
+  padding: 0 5px;
+  color: forestgreen;
+}
+.card-node .add-button:hover {
+  color: darkgreen;
+}
+
 .card-node .remove-button {
   all: unset;
   cursor: pointer;
@@ -20,28 +36,4 @@
 }
 .card-node .remove-button:hover {
   color: firebrick;
-}
-
-.card-node .add-button {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-.card-node .add-button button {
-  all: unset;
-  cursor: pointer;
-  padding: 0 5px;
-  color: forestgreen;
-}
-.card-node .add-button button:hover {
-  color: darkgreen;
-}
-
-.card-node .recipe-parts {
-  padding: 2;
-  padding-top: 6;
-  display: "grid";
-  grid-template-columns: "auto 1fr auto";
-  grid-auto-flow: "row";
-  row-gap: 8;
 }

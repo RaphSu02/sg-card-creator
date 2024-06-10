@@ -1,16 +1,18 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
-import PropTypes from "prop-types";
-import { useCallback } from "react";
-import { Handle, Position } from "reactflow";
+import { Handle, NodeProps, Position, useNodeId } from "reactflow";
 
 import "./card-node.css";
+import useStore, { CardNodeData } from "./store";
 
-function CardNode({ data, isConnectable }) {
-  const onChange = useCallback((evt) => {
-    console.log(evt.target.value);
-  }, []);
+export default function CardNode({ data }: NodeProps<CardNodeData>) {
+  const nodeId = useNodeId();
+  const updateName = useStore((state) => state.updateCardName);
+  const updateStrength = useStore((state) => state.updateCardStrength);
+  const updatePartName = useStore((state) => state.updateCardPartName);
+  const addPart = useStore((state) => state.addCardPart);
+  const removeLastPart = useStore((state) => state.removeLastPart);
 
   return (
     <div className="card-node">
@@ -18,28 +20,30 @@ function CardNode({ data, isConnectable }) {
         <tbody>
           <tr>
             <td>
-              <label htmlFor="name">Name:</label>
+              <label htmlFor={`${nodeId}-name`}>Name:</label>
             </td>
             <td>
               <input
-                id="name"
-                name="name"
+                id={`${nodeId}-name`}
                 type="text"
                 defaultValue={data.name}
+                onChange={(evt) => updateName(nodeId, evt.target.value)}
                 className="nodrag"
               />
             </td>
           </tr>
           <tr>
             <td>
-              <label htmlFor="strength">Strength:</label>
+              <label htmlFor={`${nodeId}-strength`}>Strength:</label>
             </td>
             <td>
               <input
-                id="strength"
+                id={`${nodeId}-strength`}
                 type="number"
                 defaultValue={data.strength}
-                onChange={onChange}
+                onChange={(evt) =>
+                  updateStrength(nodeId, parseInt(evt.target.value, 10))
+                }
                 className="nodrag"
               />
             </td>
@@ -57,65 +61,54 @@ function CardNode({ data, isConnectable }) {
           rowGap: 8,
         }}
       >
-        {data.parts.map((part, index) => (
+        {data.parts.map((_, index: number) => (
           <Handle
             key={index}
             type="target"
             position={Position.Left}
             style={{ position: "relative" }}
             id={`part-${index}`}
-            isConnectable={isConnectable}
           />
         ))}
-        {data.parts.map((part, index) => (
-          <input
-            key={index}
-            id={`part-label-${index}`}
-            type="text"
-            title="Recipe Part"
-            defaultValue={part.name}
-            className="nodrag"
-            style={{ marginLeft: -6 }}
-          />
-        ))}
-        {data.parts.map((part, index) => (
-          <button
-            key={index}
-            title="Remove Recipe Part"
-            className="remove-button"
-          >
-            <FontAwesomeIcon icon={fas.faCircleMinus} className="nodrag" />
-          </button>
-        ))}
+        {data.parts.map(
+          (
+            part: { name: string | number | readonly string[] | undefined },
+            index: number,
+          ) => (
+            <input
+              key={index}
+              id={`${nodeId}-part-label-${index}`}
+              type="text"
+              title="Recipe Part"
+              defaultValue={part.name}
+              onChange={(evt) =>
+                updatePartName(nodeId, index, evt.target.value)
+              }
+              className="nodrag"
+              style={{ marginLeft: -6 }}
+            />
+          ),
+        )}
       </div>
 
-      <div className="add-button">
-        <button title="Add Recipe Part">
+      <div className="add-remove-buttons">
+        <button
+          title="Add Recipe Part"
+          onClick={(evt) => addPart(nodeId, "")}
+          className="add-button"
+        >
           <FontAwesomeIcon icon={fas.faCirclePlus} className="nodrag" />
+        </button>
+        <button
+          title="Remove Last Recipe Part"
+          onClick={() => removeLastPart(nodeId)}
+          className="remove-button"
+        >
+          <FontAwesomeIcon icon={fas.faCircleMinus} className="nodrag" />
         </button>
       </div>
 
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="card"
-        isConnectable={isConnectable}
-      />
+      <Handle type="source" position={Position.Right} id="card" />
     </div>
   );
 }
-
-CardNode.propTypes = {
-  data: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    strength: PropTypes.number.isRequired,
-    parts: PropTypes.arrayOf(
-      PropTypes.shape({
-        name: PropTypes.string.isRequired,
-      }),
-    ).isRequired,
-  }).isRequired,
-  isConnectable: PropTypes.bool.isRequired,
-};
-
-export default CardNode;

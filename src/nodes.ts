@@ -18,7 +18,7 @@ export default [
     data: {
       name: "Node 2",
       strength: 10,
-      parts: [{ name: "Part 1" }, { name: "Part 2" }],
+      parts: [{ name: "Part 1" }, { name: "Part 2" }, { name: "Part 3" }],
     },
   },
 ] as Node[];
