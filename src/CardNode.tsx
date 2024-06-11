@@ -10,9 +10,9 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
   const nodeId = useNodeId();
   const updateName = useStore((state) => state.updateCardName);
   const updateStrength = useStore((state) => state.updateCardStrength);
-  const updatePartName = useStore((state) => state.updateCardPartName);
   const addPart = useStore((state) => state.addCardPart);
-  const removeLastPart = useStore((state) => state.removeLastPart);
+  const updatePartName = useStore((state) => state.updateCardPartName);
+  const removeLastPart = useStore((state) => state.removeLastCardPart);
 
   return (
     <div className="card-node">
@@ -50,6 +50,7 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
           </tr>
         </tbody>
       </table>
+
       <div
         style={{
           padding: 2,
@@ -67,7 +68,7 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
             type="target"
             position={Position.Left}
             style={{ position: "relative" }}
-            id={`part-${index}`}
+            id={`${index}`}
           />
         ))}
         {data.parts.map(
@@ -99,6 +100,7 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
         >
           <FontAwesomeIcon icon={fas.faCirclePlus} className="nodrag" />
         </button>
+
         <button
           title="Remove Last Recipe Part"
           onClick={() => removeLastPart(nodeId)}
