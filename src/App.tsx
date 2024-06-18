@@ -166,6 +166,7 @@ function Flow() {
       }
 
       onNodesChange(nodeChanges);
+      onEdgesChange(edgeChanges);
     };
     reader.readAsText(file);
     setShowUpload(false);
