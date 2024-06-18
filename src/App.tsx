@@ -187,6 +187,8 @@ function Flow() {
         style={{ backgroundColor: "#B8CEFF" }}
         minZoom={0.1}
         maxZoom={2}
+        elevateEdgesOnSelect={true}
+        deleteKeyCode={["Backspace", "Delete"]}
       >
         <Background />
         <Controls>
