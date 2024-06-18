@@ -1,23 +1,32 @@
-import React, { useCallback, useRef } from "react";
-import { useShallow } from "zustand/react/shallow";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import React, { useCallback, useRef, useState } from "react";
 import ReactFlow, {
   Controls,
   Background,
   useReactFlow,
   ReactFlowProvider,
   Panel,
+  ControlButton,
+  NodeRemoveChange,
+  Node,
+  NodeResetChange,
+  EdgeRemoveChange,
+  EdgeResetChange,
 } from "reactflow";
+import { useShallow } from "zustand/react/shallow";
+
+import useStore, { CardNodeData, PendingEdgeConnection } from "./store";
+import CardNode from "./CardNode";
 
 import "reactflow/dist/style.css";
-
-import useStore, { PendingEdgeConnection } from "./store";
-import CardNode from "./CardNode";
 
 const nodeTypes = { cardNode: CardNode };
 
 const selector = (state: {
   nodes: any;
   edges: any;
+  setNodes: any;
   onNodesChange: any;
   onEdgesChange: any;
   onConnect: any;
@@ -25,6 +34,7 @@ const selector = (state: {
 }) => ({
   nodes: state.nodes,
   edges: state.edges,
+  setNodes: state.setNodes,
   onNodesChange: state.onNodesChange,
   onEdgesChange: state.onEdgesChange,
   onConnect: state.onConnect,
@@ -35,10 +45,12 @@ const generateRandomId = () => Math.random().toString(36).substring(2, 10);
 
 function Flow() {
   const pendingEdgeConnection = useRef<PendingEdgeConnection | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
   const {
     nodes,
     edges,
+    setNodes,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -121,6 +133,44 @@ function Flow() {
     link.click();
   };
 
+  const uploadNodes = (event: any) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const nodeChanges: Array<NodeRemoveChange | NodeResetChange> = [];
+      const edgeChanges: Array<EdgeRemoveChange | EdgeResetChange> = [];
+      for (const node of nodes) {
+        nodeChanges.push({ type: "remove", id: node.id });
+      }
+      for (const edge of edges) {
+        edgeChanges.push({ type: "remove", id: edge.id });
+      }
+
+      const data: Array<Node<CardNodeData>> = JSON.parse(
+        event.target?.result as string,
+      );
+      for (const node of data) {
+        nodeChanges.push({ type: "reset", item: node });
+        for (const part of node.data.partof) {
+          edgeChanges.push({
+            type: "reset",
+            item: {
+              id: `${node.id}-to-${part.nodeid}-${part.partid}`,
+              source: node.id,
+              sourceHandle: "card",
+              target: part.nodeid,
+              targetHandle: part.partid,
+            },
+          });
+        }
+      }
+
+      onNodesChange(nodeChanges);
+    };
+    reader.readAsText(file);
+    setShowUpload(false);
+  };
+
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <ReactFlow
@@ -138,11 +188,29 @@ function Flow() {
         minZoom={0.1}
         maxZoom={2}
       >
-        <Panel position="top-right">
-          <button onClick={downloadNodes}>Download Nodes</button>
-        </Panel>
         <Background />
-        <Controls />
+        <Controls>
+          <ControlButton onClick={downloadNodes}>
+            <FontAwesomeIcon icon={fas.faDownload} style={{ color: "black" }} />
+          </ControlButton>
+          <ControlButton onClick={() => setShowUpload(true)}>
+            <FontAwesomeIcon icon={fas.faUpload} style={{ color: "black" }} />
+          </ControlButton>
+        </Controls>
+        {showUpload && (
+          <Panel position="bottom-center">
+            <div
+              style={{
+                padding: 15,
+                backgroundColor: "red",
+                border: "1px solid maroon",
+                borderRadius: 15,
+              }}
+            >
+              <input type="file" onChange={uploadNodes} />
+            </div>
+          </Panel>
+        )}
       </ReactFlow>
     </div>
   );

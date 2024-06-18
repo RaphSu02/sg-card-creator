@@ -175,6 +175,15 @@ const useStore = create<RFState>((set, get) => ({
             }
           : node,
       ),
+      edges: state.edges.filter(
+        (edge) =>
+          edge.target !== nodeId ||
+          edge.targetHandle !==
+            (
+              get().nodes.find((node) => node.id === nodeId)?.data.parts
+                .length - 1
+            ).toString(),
+      ),
     }));
   },
 

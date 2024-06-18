@@ -1,52 +1,51 @@
 import { Edge, Node } from "reactflow";
 
-const nodes = [
+export const initialNodes = [
   {
-    id: "node-1",
+    id: "vp5s434s",
     type: "cardNode",
-    position: { x: 0, y: 0 },
+    position: {
+      x: 0.10301109350238846,
+      y: -0.26576862123612344,
+    },
     data: {
-      name: "Node 1",
+      name: "Kartoffeln",
       strength: 10,
-      parts: [{ name: "Part 1" }],
-      partof: [{ nodeid: "node-2", partid: "1" }],
+      parts: [],
+      partof: [
+        {
+          nodeid: "83m9qsq8",
+          partid: "0",
+        },
+      ],
     },
   },
   {
-    id: "node-2",
+    id: "83m9qsq8",
     type: "cardNode",
-    position: { x: 100, y: 180 },
+    position: {
+      x: 292.29160063391447,
+      y: 16.504437400950884,
+    },
     data: {
-      name: "Node 2",
-      strength: 10,
+      name: "Pommes",
+      strength: 15,
       parts: [
-        { name: "Part 1" },
-        { name: "Part 2", from: "node-1" },
-        { name: "Part 3" },
+        {
+          name: "Basis",
+        },
       ],
       partof: [],
     },
   },
-];
+] as Node[];
 
-var edges: {
-  id: string;
-  source: string;
-  sourceHandle: string;
-  target: string;
-  targetHandle: string;
-}[] = [];
-for (const node of nodes) {
-  for (const part of node.data.partof) {
-    edges.push({
-      id: `${node.id}-${part.nodeid}-${part.partid}`,
-      source: node.id,
-      sourceHandle: "card",
-      target: part.nodeid,
-      targetHandle: part.partid,
-    });
-  }
-}
-
-export const initialNodes = nodes as Node[];
-export const initialEdges = edges as Edge[];
+export const initialEdges = [
+  {
+    id: "e1",
+    source: "vp5s434s",
+    sourceHandle: "0",
+    target: "83m9qsq8",
+    targetHandle: "0",
+  },
+] as Edge[];
