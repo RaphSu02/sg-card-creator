@@ -12,16 +12,15 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   updateEdge,
-  useReactFlow,
 } from "reactflow";
 
-import initialNodes from "./nodes";
-import initialEdges from "./edges";
+import { initialNodes, initialEdges } from "./input";
 
 export type CardNodeData = {
   name: string;
   strength: number;
-  parts: { name: string }[];
+  parts: { name: string; from?: string }[];
+  partof: { nodeid: string; partid: string }[];
 };
 
 export type PendingEdgeConnection = {
@@ -33,18 +32,12 @@ export type PendingEdgeConnection = {
 export type RFState = {
   nodes: Node[];
   edges: Edge[];
-  pendingEdgeConnection: PendingEdgeConnection | null;
 
   onNodesChange: OnNodesChange;
   addNode: (node: Node) => void;
   onEdgesChange: OnEdgesChange;
 
-  onConnectStart: (
-    event: React.MouseEvent,
-    params: PendingEdgeConnection,
-  ) => void;
   onConnect: OnConnect;
-  onConnectEnd: (event: React.MouseEvent) => void;
 
   setNodes: (nodes: Node[]) => void;
   setEdges: (edges: Edge[]) => void;
@@ -60,13 +53,15 @@ export type RFState = {
     name: string,
   ) => void;
   removeLastCardPart: (nodeId: string | null) => void;
+
+  onEdgeAdd: (connection: Connection) => void;
+  onEdgeRemove: (edge: Edge) => void;
 };
 
 // this is our useStore hook that we can use in our components to get parts of the store and call actions
 const useStore = create<RFState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
-  pendingEdgeConnection: null,
 
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -77,62 +72,29 @@ const useStore = create<RFState>((set, get) => ({
     get().onNodesChange([{ type: "add", item: node }]);
   },
   onEdgesChange: (changes: EdgeChange[]) => {
+    for (const change of changes) {
+      if (change.type === "add") {
+        get().onEdgeAdd(change.item as Connection);
+      }
+
+      if (change.type === "remove") {
+        const edge = get().edges.find((edge) => edge.id === change.id);
+        if (!edge) {
+          console.error("Edge not found", change);
+          return;
+        }
+        get().onEdgeRemove(edge);
+      }
+    }
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
   },
 
-  onConnectStart: (_event: React.MouseEvent, params: PendingEdgeConnection) => {
-    console.log("onConnectStart", params);
-
-    set({ pendingEdgeConnection: params });
-  },
   onConnect: (connection: Connection) => {
     set({
       edges: addEdge(connection, get().edges),
     });
-  },
-  onConnectEnd: (event: any) => {
-    if (get().pendingEdgeConnection == null) return;
-
-    const { screenToFlowPosition } = useReactFlow();
-
-    if (event.target.classList.contains("react-flow__node")) {
-      console.log("onConnectEnd", event.target.classList);
-
-      const newNode = {
-        id: Math.random().toString(36).substring(2, 10),
-        type: "cardNode",
-        position: screenToFlowPosition({
-          x: event.clientX,
-          y: event.clientY,
-        }),
-        data: {
-          name: null,
-          strength: null,
-          parts: [{ name: "Part 1" }],
-        },
-        origin: [0.5, 0.0],
-      };
-
-      get().addNode(newNode);
-
-      const newEdge = {
-        source: get().pendingEdgeConnection?.nodeId ?? "",
-        target: newNode.id,
-        sourceHandle:
-          get().pendingEdgeConnection?.handleType === "source"
-            ? get().pendingEdgeConnection?.handleId!
-            : null,
-        targetHandle:
-          get().pendingEdgeConnection?.handleType === "target"
-            ? get().pendingEdgeConnection?.handleId!
-            : null,
-      };
-      set({
-        edges: addEdge(newEdge, get().edges),
-      });
-    }
   },
 
   setNodes: (nodes: Node[]) => {
@@ -143,6 +105,8 @@ const useStore = create<RFState>((set, get) => ({
   },
 
   onEdgeUpdate: (oldEdge: Edge, newConnection: Connection) => {
+    get().onEdgeRemove(oldEdge);
+    get().onEdgeAdd(newConnection);
     set({ edges: updateEdge(oldEdge, newConnection, get().edges) });
   },
 
@@ -212,6 +176,53 @@ const useStore = create<RFState>((set, get) => ({
           : node,
       ),
     }));
+  },
+
+  onEdgeAdd: (connection: Connection) => {
+    const sourceNode = get().nodes.find(
+      (node) => node.id === connection.source,
+    );
+    const targetNode = get().nodes.find(
+      (node) => node.id === connection.target,
+    );
+
+    if (!sourceNode || !targetNode) {
+      console.error("Source or target node not found", connection);
+      return;
+    }
+    if (
+      connection.targetHandle === undefined ||
+      connection.targetHandle === null
+    ) {
+      console.error("Target handle not found", connection);
+      return;
+    }
+
+    sourceNode.data.partof.push({
+      nodeid: targetNode.id,
+      partid: connection.targetHandle,
+    });
+    targetNode.data.parts[parseInt(connection.targetHandle)].from =
+      sourceNode.id;
+  },
+  onEdgeRemove: (edge: Edge) => {
+    const sourceNode = get().nodes.find((node) => node.id === edge.source);
+    const targetNode = get().nodes.find((node) => node.id === edge.target);
+
+    if (!sourceNode || !targetNode) {
+      console.error("Source or target node not found", edge);
+      return;
+    }
+    if (edge.targetHandle === undefined || edge.targetHandle === null) {
+      console.error("Target handle not found", edge);
+      return;
+    }
+
+    sourceNode.data.partof = sourceNode.data.partof.filter(
+      (part) =>
+        part.nodeid !== targetNode.id || part.partid !== edge.targetHandle,
+    );
+    targetNode.data.parts[parseInt(edge.targetHandle)].from = undefined;
   },
 }));
 

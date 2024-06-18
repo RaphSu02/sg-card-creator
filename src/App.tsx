@@ -5,6 +5,7 @@ import ReactFlow, {
   Background,
   useReactFlow,
   ReactFlowProvider,
+  Panel,
 } from "reactflow";
 
 import "reactflow/dist/style.css";
@@ -70,13 +71,14 @@ function Flow() {
             name: "",
             strength: "",
             parts: [{ name: "Part 1" }],
+            partof: [],
           },
           origin: [0.5, 0.0],
         };
 
         onNodesChange([{ type: "add", item: newNode }]);
 
-        if (pendingEdgeConnection.current.handleType === "source") {
+        if (handleIsSource) {
           onEdgesChange([
             {
               type: "add",
@@ -85,11 +87,11 @@ function Flow() {
                 source: pendingEdgeConnection.current.nodeId ?? "",
                 target: newNode.id,
                 sourceHandle: pendingEdgeConnection.current.handleId,
-                targetHandle: null,
+                targetHandle: "0",
               },
             },
           ]);
-        } else if (pendingEdgeConnection.current.handleType === "target") {
+        } else {
           onEdgesChange([
             {
               type: "add",
@@ -108,6 +110,17 @@ function Flow() {
     [onNodesChange, onEdgesChange, screenToFlowPosition],
   );
 
+  const downloadNodes = () => {
+    const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+      JSON.stringify(nodes, null, 2),
+    )}`;
+    const link = document.createElement("a");
+    link.href = jsonString;
+    link.download = "data.json";
+
+    link.click();
+  };
+
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <ReactFlow
@@ -125,6 +138,9 @@ function Flow() {
         minZoom={0.1}
         maxZoom={2}
       >
+        <Panel position="top-right">
+          <button onClick={downloadNodes}>Download Nodes</button>
+        </Panel>
         <Background />
         <Controls />
       </ReactFlow>
