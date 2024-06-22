@@ -4,12 +4,14 @@ import { fas } from "@fortawesome/free-solid-svg-icons";
 import { Handle, NodeProps, Position, useNodeId } from "reactflow";
 
 import "./card-node.css";
-import useStore, { CardNodeData } from "./store";
+import useStore, { CardNodeData, Diet } from "./store";
 
 export default function CardNode({ data }: NodeProps<CardNodeData>) {
   const nodeId = useNodeId();
   const updateName = useStore((state) => state.updateCardName);
+  const updatePicture = useStore((state) => state.updateCardPicture);
   const updateStrength = useStore((state) => state.updateCardStrength);
+  const updateDiet = useStore((state) => state.updateCardDiet);
   const addPart = useStore((state) => state.addCardPart);
   const updatePartName = useStore((state) => state.updateCardPartName);
   const removeLastPart = useStore((state) => state.removeLastCardPart);
@@ -34,6 +36,20 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
           </tr>
           <tr>
             <td>
+              <label htmlFor={`${nodeId}-picture`}>Picture:</label>
+            </td>
+            <td>
+              <input
+                id={`${nodeId}-picture`}
+                type="text"
+                defaultValue={data.picture}
+                onChange={(evt) => updatePicture(nodeId, evt.target.value)}
+                className="nodrag"
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>
               <label htmlFor={`${nodeId}-strength`}>Strength:</label>
             </td>
             <td>
@@ -46,6 +62,26 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
                 }
                 className="nodrag"
               />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label htmlFor={`${nodeId}-diet`}>Diet:</label>
+            </td>
+            <td>
+              <select
+                id={`${nodeId}-diet`}
+                defaultValue={data.diet}
+                onChange={(evt) => updateDiet(nodeId, evt.target.value as Diet)}
+                className="nodrag"
+                style={{ width: "100%", paddingTop: 1, paddingBottom: 1 }}
+              >
+                {Object.values(Diet).map((diet) => (
+                  <option key={diet} value={diet}>
+                    {diet}
+                  </option>
+                ))}
+              </select>
             </td>
           </tr>
         </tbody>

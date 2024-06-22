@@ -46,7 +46,7 @@ const generateRandomId = () => Math.random().toString(36).substring(2, 10);
 function Flow() {
   const pendingEdgeConnection = useRef<PendingEdgeConnection | null>(null);
   const [showUpload, setShowUpload] = useState(false);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const {
     nodes,
     edges,
@@ -76,13 +76,13 @@ function Flow() {
           id: generateRandomId(),
           type: "cardNode",
           position: {
-            x: mousePosition.x - (handleIsSource ? 8 : 240),
-            y: mousePosition.y - (handleIsSource ? 82 : 65),
+            x: mousePosition.x - (handleIsSource ? 8 : 247),
+            y: mousePosition.y - (handleIsSource ? 137 : 92),
           },
           data: {
             name: "",
             strength: "",
-            parts: [{ name: "Part 1" }],
+            parts: [{ name: "Part 1", from: [] }],
             partof: [],
           },
           origin: [0.5, 0.0],
@@ -117,6 +117,7 @@ function Flow() {
             },
           ]);
         }
+        fitView();
       }
     },
     [onNodesChange, onEdgesChange, screenToFlowPosition],

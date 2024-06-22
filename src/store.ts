@@ -16,10 +16,19 @@ import {
 
 import { initialNodes, initialEdges } from "./input";
 
+export enum Diet {
+  Omnivore = "Omnivore",
+  Pescatarian = "Pescatarian",
+  Vegetarian = "Vegetarian",
+  Vegan = "Vegan",
+}
+
 export type CardNodeData = {
   name: string;
+  picture: string;
   strength: number;
-  parts: { name: string; from?: string }[];
+  diet: Diet;
+  parts: { name: string; from: string[] }[];
   partof: { nodeid: string; partid: string }[];
 };
 
@@ -45,7 +54,9 @@ export type RFState = {
   onEdgeUpdate: (oldEdge: Edge, newConnection: Connection) => void;
 
   updateCardName: (nodeId: string | null, name: string) => void;
+  updateCardPicture: (nodeId: string | null, picture: string) => void;
   updateCardStrength: (nodeId: string | null, strength: number) => void;
+  updateCardDiet: (nodeId: string | null, diet: Diet) => void;
   addCardPart: (nodeId: string | null, partName: string) => void;
   updateCardPartName: (
     nodeId: string | null,
@@ -92,6 +103,7 @@ const useStore = create<RFState>((set, get) => ({
   },
 
   onConnect: (connection: Connection) => {
+    get().onEdgeAdd(connection);
     set({
       edges: addEdge(connection, get().edges),
     });
@@ -117,12 +129,28 @@ const useStore = create<RFState>((set, get) => ({
       ),
     }));
   },
+  updateCardPicture: (nodeId: string | null, picture: string) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, picture } }
+          : node,
+      ),
+    }));
+  },
   updateCardStrength: (nodeId: string | null, strength: number) => {
     set((state) => ({
       nodes: state.nodes.map((node) =>
         node.id === nodeId
           ? { ...node, data: { ...node.data, strength } }
           : node,
+      ),
+    }));
+  },
+  updateCardDiet: (nodeId: string | null, diet: Diet) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId ? { ...node, data: { ...node.data, diet } } : node,
       ),
     }));
   },
@@ -134,7 +162,7 @@ const useStore = create<RFState>((set, get) => ({
               ...node,
               data: {
                 ...node.data,
-                parts: [...node.data.parts, { name: partName }],
+                parts: [...node.data.parts, { name: partName, from: [] }],
               },
             }
           : node,
@@ -154,7 +182,7 @@ const useStore = create<RFState>((set, get) => ({
               data: {
                 ...node.data,
                 parts: node.data.parts.map((part, index) =>
-                  index === partIndex ? { name } : part,
+                  index === partIndex ? { ...part, name } : part,
                 ),
               },
             }
@@ -163,6 +191,20 @@ const useStore = create<RFState>((set, get) => ({
     }));
   },
   removeLastCardPart: (nodeId: string | null) => {
+    get().onEdgesChange([
+      {
+        type: "remove",
+        id: get().edges.find(
+          (edge) =>
+            edge.target === nodeId &&
+            edge.targetHandle ===
+              (
+                get().nodes.find((node) => node.id === nodeId)?.data.parts
+                  .length - 1
+              ).toString(),
+        )?.id as string,
+      },
+    ]);
     set((state) => ({
       nodes: state.nodes.map((node) =>
         node.id === nodeId
@@ -174,15 +216,6 @@ const useStore = create<RFState>((set, get) => ({
               },
             }
           : node,
-      ),
-      edges: state.edges.filter(
-        (edge) =>
-          edge.target !== nodeId ||
-          edge.targetHandle !==
-            (
-              get().nodes.find((node) => node.id === nodeId)?.data.parts
-                .length - 1
-            ).toString(),
       ),
     }));
   },
@@ -207,12 +240,18 @@ const useStore = create<RFState>((set, get) => ({
       return;
     }
 
-    sourceNode.data.partof.push({
-      nodeid: targetNode.id,
-      partid: connection.targetHandle,
-    });
-    targetNode.data.parts[parseInt(connection.targetHandle)].from =
-      sourceNode.id;
+    sourceNode.data.partof = [
+      ...sourceNode.data.partof,
+      {
+        nodeid: targetNode.id,
+        partid: connection.targetHandle,
+      },
+    ];
+
+    targetNode.data.parts[parseInt(connection.targetHandle)].from = [
+      ...targetNode.data.parts[parseInt(connection.targetHandle)].from,
+      sourceNode.id,
+    ];
   },
   onEdgeRemove: (edge: Edge) => {
     const sourceNode = get().nodes.find((node) => node.id === edge.source);
@@ -231,7 +270,10 @@ const useStore = create<RFState>((set, get) => ({
       (part) =>
         part.nodeid !== targetNode.id || part.partid !== edge.targetHandle,
     );
-    targetNode.data.parts[parseInt(edge.targetHandle)].from = undefined;
+    targetNode.data.parts[parseInt(edge.targetHandle)].from =
+      targetNode.data.parts[parseInt(edge.targetHandle)].from.filter(
+        (from) => from !== sourceNode.id,
+      );
   },
 }));
 

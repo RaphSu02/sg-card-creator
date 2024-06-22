@@ -10,7 +10,9 @@ export const initialNodes = [
     },
     data: {
       name: "Kartoffeln",
+      picture: "kartoffeln.png",
       strength: 10,
+      diet: "Vegan",
       parts: [],
       partof: [
         {
@@ -29,10 +31,13 @@ export const initialNodes = [
     },
     data: {
       name: "Pommes",
+      picture: "pommes.png",
       strength: 15,
+      diet: "Omnivore",
       parts: [
         {
           name: "Basis",
+          from: ["vp5s434s"],
         },
       ],
       partof: [],
