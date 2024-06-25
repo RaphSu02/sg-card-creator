@@ -28,6 +28,7 @@ export type CardNodeData = {
   picture: string;
   strength: number;
   diet: Diet;
+  probability: number;
   parts: { name: string; from: string[] }[];
   partof: { nodeid: string; partid: string }[];
 };
@@ -57,6 +58,7 @@ export type RFState = {
   updateCardPicture: (nodeId: string | null, picture: string) => void;
   updateCardStrength: (nodeId: string | null, strength: number) => void;
   updateCardDiet: (nodeId: string | null, diet: Diet) => void;
+  updateCardProbability: (nodeId: string | null, probability: number) => void;
   addCardPart: (nodeId: string | null, partName: string) => void;
   updateCardPartName: (
     nodeId: string | null,
@@ -151,6 +153,15 @@ const useStore = create<RFState>((set, get) => ({
     set((state) => ({
       nodes: state.nodes.map((node) =>
         node.id === nodeId ? { ...node, data: { ...node.data, diet } } : node,
+      ),
+    }));
+  },
+  updateCardProbability: (nodeId: string | null, probability: number) => {
+    set((state) => ({
+      nodes: state.nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, probability } }
+          : node,
       ),
     }));
   },

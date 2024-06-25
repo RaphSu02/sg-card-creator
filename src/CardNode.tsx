@@ -12,6 +12,7 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
   const updatePicture = useStore((state) => state.updateCardPicture);
   const updateStrength = useStore((state) => state.updateCardStrength);
   const updateDiet = useStore((state) => state.updateCardDiet);
+  const updateProbability = useStore((state) => state.updateCardProbability);
   const addPart = useStore((state) => state.addCardPart);
   const updatePartName = useStore((state) => state.updateCardPartName);
   const removeLastPart = useStore((state) => state.removeLastCardPart);
@@ -82,6 +83,25 @@ export default function CardNode({ data }: NodeProps<CardNodeData>) {
                   </option>
                 ))}
               </select>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label htmlFor={`${nodeId}-probability`}>Probability:</label>
+            </td>
+            <td>
+              <input
+                id={`${nodeId}-probability`}
+                type="number"
+                defaultValue={data.probability}
+                onChange={(evt) => {
+                  const value = parseFloat(evt.target.value);
+                  if (value < 0) evt.target.value = "0";
+                  if (value > 1) evt.target.value = "1";
+                  updateProbability(nodeId, parseFloat(evt.target.value));
+                }}
+                className="nodrag"
+              />
             </td>
           </tr>
         </tbody>

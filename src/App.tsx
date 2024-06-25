@@ -50,7 +50,6 @@ function Flow() {
   const {
     nodes,
     edges,
-    setNodes,
     onNodesChange,
     onEdgesChange,
     onConnect,
@@ -76,12 +75,13 @@ function Flow() {
           id: generateRandomId(),
           type: "cardNode",
           position: {
-            x: mousePosition.x - (handleIsSource ? 8 : 247),
-            y: mousePosition.y - (handleIsSource ? 137 : 92),
+            x: mousePosition.x - (handleIsSource ? 8 : 251),
+            y: mousePosition.y - (handleIsSource ? 167 : 108),
           },
           data: {
             name: "",
             strength: "",
+            probaility: 1,
             parts: [{ name: "Part 1", from: [] }],
             partof: [],
           },
@@ -117,7 +117,6 @@ function Flow() {
             },
           ]);
         }
-        fitView();
       }
     },
     [onNodesChange, onEdgesChange, screenToFlowPosition],

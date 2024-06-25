@@ -1,8 +1,13 @@
 import { Edge, Node } from "reactflow";
 
+const generateRandomId = () => Math.random().toString(36).substring(2, 10);
+
+const idA = generateRandomId();
+const idB = generateRandomId();
+
 export const initialNodes = [
   {
-    id: "vp5s434s",
+    id: idA,
     type: "cardNode",
     position: {
       x: 0.10301109350238846,
@@ -13,17 +18,18 @@ export const initialNodes = [
       picture: "kartoffeln.png",
       strength: 10,
       diet: "Vegan",
+      probability: 0.2,
       parts: [],
       partof: [
         {
-          nodeid: "83m9qsq8",
+          nodeid: idB,
           partid: "0",
         },
       ],
     },
   },
   {
-    id: "83m9qsq8",
+    id: idB,
     type: "cardNode",
     position: {
       x: 292.29160063391447,
@@ -34,10 +40,11 @@ export const initialNodes = [
       picture: "pommes.png",
       strength: 15,
       diet: "Omnivore",
+      probability: 0.03,
       parts: [
         {
           name: "Basis",
-          from: ["vp5s434s"],
+          from: [idA],
         },
       ],
       partof: [],
@@ -47,10 +54,10 @@ export const initialNodes = [
 
 export const initialEdges = [
   {
-    id: "e1",
-    source: "vp5s434s",
+    id: idA + "-to-" + idB,
+    source: idA,
     sourceHandle: "0",
-    target: "83m9qsq8",
+    target: idB,
     targetHandle: "0",
   },
 ] as Edge[];
